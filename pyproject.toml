@@ -1,0 +1,7 @@
+[project]
+name = "itk-order-service"
+version = "0.1.0"
+description = "Order Service with integrated Capashino services (Catalog, Payments, Shipping, Notifications)"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
