@@ -3,7 +3,6 @@ repos:
   rev: v2.3.1
   hooks:
   - id: mypy
-    args: [--verbose]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.17.1
