@@ -14,9 +14,9 @@ class OrderStatus(StrEnum):
 @dataclass
 class Order:
     id: UUID
-    user_id: str
+    user_id: int
     quantity: int
-    item_id: str
+    item_id: UUID
     status: OrderStatus
     created_at: datetime
     updated_at: datetime
@@ -24,3 +24,5 @@ class Order:
     def __post_init__(self):
         if self.quantity < 0:
             raise ValueError('Количество должно быть не отрицательным')
+        if self.created_at > self.updated_at:
+            raise ValueError('Последнее обновление не может быть раньше создания')
