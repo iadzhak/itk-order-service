@@ -32,7 +32,7 @@ quote-style = "single"
 
 [tool.mypy]
 files = ['app/*']
-
+exclude = ['alembic/*', 'tests/*']
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
