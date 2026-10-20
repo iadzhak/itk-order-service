@@ -2,7 +2,8 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import UUID as UUID_SA
-from sqlalchemy import CheckConstraint, DateTime, Enum, Integer
+from sqlalchemy import CheckConstraint, DateTime, Enum, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
@@ -38,3 +39,14 @@ class Order(Base):
     )
 
     __table_args__ = (CheckConstraint('quantity > 0', 'ck_order_quantity_positive'),)
+
+
+class Idempotency(Base):
+    idempotency_key: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True)
+    payload_hash: Mapped[str] = mapped_column(String, nullable=False)
+    response: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(tz=UTC),
+    )
