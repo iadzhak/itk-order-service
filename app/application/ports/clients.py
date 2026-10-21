@@ -15,5 +15,5 @@ class CatalogServicePort(ABC):
         created_at: datetime
 
     @abstractmethod
-    async def get_item(self, item_id: UUID) -> ItemDTO:
+    async def get_item(self, item_id: UUID) -> ItemDTO | None:
         pass
