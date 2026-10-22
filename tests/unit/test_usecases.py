@@ -22,7 +22,7 @@ class TestGetOrderUseCase:
         now = datetime.now()
         order = Order(
             id=uuid4(),
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
             status=OrderStatus.NEW,
@@ -58,10 +58,10 @@ class TestCreateOrderUseCase:
 
     async def test_success(self):
         new = CreateOrderDTO(
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
-            idempotency_key=uuid4(),
+            idempotency_key='test-idempotency-key-123',
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service(
@@ -84,10 +84,10 @@ class TestCreateOrderUseCase:
 
     async def test_idempotency_success(self):
         new = CreateOrderDTO(
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
-            idempotency_key=uuid4(),
+            idempotency_key='test-idempotency-key-123',
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service(
@@ -110,10 +110,10 @@ class TestCreateOrderUseCase:
 
     async def test_idempotency_error(self):
         new = CreateOrderDTO(
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
-            idempotency_key=uuid4(),
+            idempotency_key='test-idempotency-key-123',
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service(
@@ -135,10 +135,10 @@ class TestCreateOrderUseCase:
 
     async def test_item_not_enough_quantity(self):
         new = CreateOrderDTO(
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
-            idempotency_key=uuid4(),
+            idempotency_key='test-idempotency-key-123',
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service(
@@ -158,10 +158,10 @@ class TestCreateOrderUseCase:
 
     async def test_item_not_found(self):
         new = CreateOrderDTO(
-            user_id=123,
+            user_id='user_1',
             quantity=10,
             item_id=uuid4(),
-            idempotency_key=uuid4(),
+            idempotency_key='test-idempotency-key-123',
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service()

@@ -14,7 +14,7 @@ class OrderStatus(StrEnum):
 @dataclass
 class Order:
     id: UUID
-    user_id: int
+    user_id: str
     quantity: int
     item_id: UUID
     status: OrderStatus
@@ -31,7 +31,7 @@ class Order:
     def from_dict(cls, data: dict) -> Order:
         return cls(
             id=UUID(data['id']),
-            user_id=int(data['user_id']),
+            user_id=data['user_id'],
             quantity=int(data['quantity']),
             item_id=UUID(data['item_id']),
             status=OrderStatus(data['status']),
@@ -53,7 +53,7 @@ class Order:
 
 @dataclass
 class Idempotency:
-    idempotency_key: UUID
+    idempotency_key: str
     payload_hash: str
     response: dict
     created_at: datetime

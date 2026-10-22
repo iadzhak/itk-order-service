@@ -11,7 +11,7 @@ class TestOrder:
         quantity = 10
         order = Order(
             id=uuid4(),
-            user_id=123,
+            user_id='user_1',
             quantity=quantity,
             item_id=uuid4(),
             status=OrderStatus.NEW,
@@ -24,7 +24,7 @@ class TestOrder:
         with pytest.raises(ValueError):
             Order(
                 id=uuid4(),
-                user_id=123,
+                user_id='user_1',
                 quantity=-10,
                 item_id=uuid4(),
                 status=OrderStatus.NEW,
@@ -36,7 +36,7 @@ class TestOrder:
         with pytest.raises(ValueError):
             Order(
                 id=uuid4(),
-                user_id=123,
+                user_id='user_1',
                 quantity=-10,
                 item_id=uuid4(),
                 status=OrderStatus.NEW,

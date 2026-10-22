@@ -75,10 +75,10 @@ class SAIdempotencyRepository(IdempotencyRepository):
         await self._session.execute(stmt)
         result = await self.get_by_idempotency_key(idempotency.idempotency_key)
         if not result:
-            raise RuntimeError('Ошибка создания коюча индепотенции в базе')
+            raise RuntimeError('Ошибка создания ключа идемпотентности в базе')
         return result
 
-    async def get_by_idempotency_key(self, idempotency_key: UUID) -> Idempotency | None:
+    async def get_by_idempotency_key(self, idempotency_key: str) -> Idempotency | None:
         stmt = select(IdempotencyORM).where(
             IdempotencyORM.idempotency_key == idempotency_key
         )

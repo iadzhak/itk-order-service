@@ -2,16 +2,16 @@ import hashlib
 from typing import Protocol
 from uuid import UUID
 
-from pydantic import BaseModel, NonNegativeInt, PositiveInt
+from pydantic import BaseModel, PositiveInt
 
 from app.domain.models import Order
 
 
 class CreateOrderDTO(BaseModel):
-    user_id: NonNegativeInt
+    user_id: str
     quantity: PositiveInt
     item_id: UUID
-    idempotency_key: UUID
+    idempotency_key: str
 
     def get_hash(self) -> str:
         normalized_data = self.model_dump_json()

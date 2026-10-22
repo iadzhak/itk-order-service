@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from pydantic import BaseModel, NonNegativeInt, PositiveInt
+from pydantic import BaseModel, PositiveInt
 
 from app.domain.models import Idempotency, Order
 
 
 class OrderRepository(ABC):
     class CreateDTO(BaseModel):
-        user_id: NonNegativeInt
+        user_id: str
         quantity: PositiveInt
         item_id: UUID
 
@@ -23,7 +23,7 @@ class OrderRepository(ABC):
 
 class IdempotencyRepository(ABC):
     class CreateDTO(BaseModel):
-        idempotency_key: UUID
+        idempotency_key: str
         payload_hash: str
         response: dict
 
@@ -32,5 +32,5 @@ class IdempotencyRepository(ABC):
 
     @abstractmethod
     async def get_by_idempotency_key(
-        self, idempotency_key: UUID
+        self, idempotency_key: str
     ) -> Idempotency | None: ...

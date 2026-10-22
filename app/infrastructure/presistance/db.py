@@ -22,7 +22,7 @@ class Base(DeclarativeBase):
 
 class Order(Base):
     id: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True, default=uuid4)
-    user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[str] = mapped_column(String, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     item_id: Mapped[UUID] = mapped_column(UUID_SA, nullable=False)
     status: Mapped[OrderStatus] = mapped_column(
@@ -42,7 +42,7 @@ class Order(Base):
 
 
 class Idempotency(Base):
-    idempotency_key: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String, primary_key=True)
     payload_hash: Mapped[str] = mapped_column(String, nullable=False)
     response: Mapped[dict] = mapped_column(JSONB, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
