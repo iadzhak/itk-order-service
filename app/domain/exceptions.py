@@ -24,7 +24,7 @@ class OrderNotFound(Exception):
 
 
 class IdempotencyError(Exception):
-    def __init__(self, idempotency_key: UUID) -> None:
+    def __init__(self, idempotency_key: str) -> None:
         super().__init__(
-            f'Повторная отправка с другими данными для ключа {idempotency_key!s}'
+            f'Повторная отправка с другими данными для ключа {idempotency_key!r}'
         )
