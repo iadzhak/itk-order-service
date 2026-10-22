@@ -15,7 +15,7 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):
-    @declared_attr
+    @declared_attr.directive
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
 

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from tests.fixtures.in_memory_repositories import (
     InMemoryIdempotencyRepository,
     InMemoryOrderRepository,
@@ -10,14 +12,12 @@ class InMemoryUnitOfWork:
         self.idempotency = {}
         self._committed = False
 
-    async def __aenter__(self):
-        return _InMemoryUoWImplementation(
+    @asynccontextmanager
+    async def __call__(self):
+        yield _InMemoryUoWImplementation(
             orders=self.orders, idempotency=self.idempotency
         )
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is None:
-            self._committed = True
+        self._committed = True
 
 
 class _InMemoryUoWImplementation:

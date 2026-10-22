@@ -1,10 +1,9 @@
-from abc import ABC
 from uuid import UUID
 
 from app.application.ports.clients import CatalogServicePort
 
 
-class InMemoryCatalogService(CatalogServicePort, ABC):
+class InMemoryCatalogService(CatalogServicePort):
     def __init__(self, items: dict | None = None) -> None:
         self._items = items if items is not None else {}
 

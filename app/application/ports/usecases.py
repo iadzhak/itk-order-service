@@ -1,3 +1,4 @@
+import hashlib
 from typing import Protocol
 from uuid import UUID
 
@@ -11,6 +12,12 @@ class CreateOrderDTO(BaseModel):
     quantity: PositiveInt
     item_id: UUID
     idempotency_key: UUID
+
+    def get_hash(self) -> str:
+        normalized_data = self.model_dump_json()
+        data_bytes = normalized_data.encode('utf-8')
+        hash_object = hashlib.sha256(data_bytes)
+        return hash_object.hexdigest()
 
 
 class CreateOrderPort(Protocol):

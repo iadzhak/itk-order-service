@@ -14,4 +14,5 @@ class UnitOfWorkImplementationPort(Protocol):
     def idempotency(self) -> IdempotencyRepository: ...
 
 
-UnitOfWorkPort = AbstractAsyncContextManager[UnitOfWorkImplementationPort]
+class UnitOfWorkPort(Protocol):
+    def __call__(self) -> AbstractAsyncContextManager[UnitOfWorkImplementationPort]: ...

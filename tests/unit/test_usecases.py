@@ -5,8 +5,14 @@ import pytest
 
 from app.application.usecases.create_order import CreateOrderDTO, CreateOrderUseCase
 from app.application.usecases.get_order import GetOrderUseCase
-from app.domain.exceptions import IdempotencyError, OrderNotFound
+from app.domain.exceptions import (
+    IdempotencyError,
+    ItemNotEnoughQuantity,
+    ItemNotFound,
+    OrderNotFound,
+)
 from app.domain.models import Order, OrderStatus
+from tests.fixtures.in_memory_clients import InMemoryCatalogService
 from tests.fixtures.in_memory_uow import InMemoryUnitOfWork
 
 
@@ -46,6 +52,10 @@ class TestGetOrderUseCase:
 
 @pytest.mark.asyncio
 class TestCreateOrderUseCase:
+    def make_catalog_service(self, *items: InMemoryCatalogService.ItemDTO):
+        items = {item.id: item for item in items}
+        return InMemoryCatalogService(items)
+
     async def test_success(self):
         new = CreateOrderDTO(
             user_id=123,
@@ -54,7 +64,16 @@ class TestCreateOrderUseCase:
             idempotency_key=uuid4(),
         )
         uow = InMemoryUnitOfWork()
-        use_case = CreateOrderUseCase(uow)
+        catalog_service = self.make_catalog_service(
+            InMemoryCatalogService.ItemDTO(
+                id=new.item_id,
+                name='abc',
+                price=24.6,
+                available_qty=new.quantity,
+                created_at=datetime.now(),
+            )
+        )
+        use_case = CreateOrderUseCase(uow, catalog_service)
         created = await use_case(new)
         assert isinstance(created, Order)
         assert created.user_id == new.user_id
@@ -71,7 +90,16 @@ class TestCreateOrderUseCase:
             idempotency_key=uuid4(),
         )
         uow = InMemoryUnitOfWork()
-        use_case = CreateOrderUseCase(uow)
+        catalog_service = self.make_catalog_service(
+            InMemoryCatalogService.ItemDTO(
+                id=new.item_id,
+                name='abc',
+                price=24.6,
+                available_qty=new.quantity,
+                created_at=datetime.now(),
+            )
+        )
+        use_case = CreateOrderUseCase(uow, catalog_service)
         found = await use_case(new)
         assert len(uow.idempotency) == 1
         assert len(uow.orders) == 1
@@ -88,7 +116,16 @@ class TestCreateOrderUseCase:
             idempotency_key=uuid4(),
         )
         uow = InMemoryUnitOfWork()
-        use_case = CreateOrderUseCase(uow)
+        catalog_service = self.make_catalog_service(
+            InMemoryCatalogService.ItemDTO(
+                id=new.item_id,
+                name='abc',
+                price=24.6,
+                available_qty=new.quantity,
+                created_at=datetime.now(),
+            )
+        )
+        use_case = CreateOrderUseCase(uow, catalog_service)
         await use_case(new)
         assert len(uow.idempotency) == 1
         assert len(uow.orders) == 1
@@ -96,5 +133,40 @@ class TestCreateOrderUseCase:
         with pytest.raises(IdempotencyError):
             await use_case(new)
 
-    async def test_not_enough_quantity(self):
-        pass
+    async def test_item_not_enough_quantity(self):
+        new = CreateOrderDTO(
+            user_id=123,
+            quantity=10,
+            item_id=uuid4(),
+            idempotency_key=uuid4(),
+        )
+        uow = InMemoryUnitOfWork()
+        catalog_service = self.make_catalog_service(
+            InMemoryCatalogService.ItemDTO(
+                id=new.item_id,
+                name='abc',
+                price=24.6,
+                available_qty=new.quantity - 1,
+                created_at=datetime.now(),
+            )
+        )
+        use_case = CreateOrderUseCase(uow, catalog_service)
+        with pytest.raises(ItemNotEnoughQuantity):
+            await use_case(new)
+        assert len(uow.orders) == 0
+        assert len(uow.idempotency) == 0
+
+    async def test_item_not_found(self):
+        new = CreateOrderDTO(
+            user_id=123,
+            quantity=10,
+            item_id=uuid4(),
+            idempotency_key=uuid4(),
+        )
+        uow = InMemoryUnitOfWork()
+        catalog_service = self.make_catalog_service()
+        use_case = CreateOrderUseCase(uow, catalog_service)
+        with pytest.raises(ItemNotFound):
+            await use_case(new)
+        assert len(uow.orders) == 0
+        assert len(uow.idempotency) == 0

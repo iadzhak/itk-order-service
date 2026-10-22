@@ -10,7 +10,7 @@ class GetOrderUseCase:
         self._uow = uow
 
     async def __call__(self, order_id: UUID) -> Order:
-        async with self._uow as uow:
+        async with self._uow() as uow:
             order = await uow.orders.get_by_id(order_id)
         if not order:
             raise OrderNotFound(order_id)

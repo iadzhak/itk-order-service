@@ -1,33 +1,18 @@
-import hashlib
-from uuid import UUID
-
-from pydantic import BaseModel, NonNegativeInt, PositiveInt
-
+from app.application.ports.clients import CatalogServicePort
 from app.application.ports.uow import UnitOfWorkPort
-from app.domain.exceptions import IdempotencyError
+from app.application.ports.usecases import CreateOrderDTO
+from app.domain.exceptions import IdempotencyError, ItemNotEnoughQuantity, ItemNotFound
 from app.domain.models import Order
 
 
-class CreateOrderDTO(BaseModel):
-    user_id: NonNegativeInt
-    quantity: PositiveInt
-    item_id: UUID
-    idempotency_key: UUID
-
-    def get_hash(self) -> str:
-        normalized_data = self.model_dump_json()
-        data_bytes = normalized_data.encode('utf-8')
-        hash_object = hashlib.sha256(data_bytes)
-        return hash_object.hexdigest()
-
-
 class CreateOrderUseCase:
-    def __init__(self, uow: UnitOfWorkPort) -> None:
+    def __init__(self, uow: UnitOfWorkPort, catalog: CatalogServicePort) -> None:
         self._uow = uow
+        self._catalog = catalog
 
     async def __call__(self, order: CreateOrderDTO) -> Order:
 
-        async with self._uow as uow:
+        async with self._uow() as uow:
             # check idempotency
             idempotency = await uow.idempotency.get_by_idempotency_key(
                 order.idempotency_key
@@ -38,15 +23,22 @@ class CreateOrderUseCase:
                 else:
                     raise IdempotencyError(order.idempotency_key)
 
-            # check available_qty
+        # check available_qty
+        catalog_item = await self._catalog.get_item(order.item_id)
+        if catalog_item is None:
+            raise ItemNotFound(order.item_id)
+        if catalog_item.available_qty < order.quantity:
+            raise ItemNotEnoughQuantity(
+                catalog_item.name, order.quantity, catalog_item.available_qty
+            )
 
+        async with self._uow() as uow:
             # create order
             db_order = await uow.orders.create(
                 uow.orders.CreateDTO(
                     user_id=order.user_id,
                     quantity=order.quantity,
                     item_id=order.item_id,
-                    idempotency_key=order.idempotency_key,
                 )
             )
             await uow.idempotency.create(
