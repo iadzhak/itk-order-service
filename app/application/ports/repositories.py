@@ -11,7 +11,6 @@ class OrderRepository(ABC):
         user_id: NonNegativeInt
         quantity: PositiveInt
         item_id: UUID
-        idempotency_key: UUID
 
     @abstractmethod
     async def create(self, order: CreateDTO) -> Order:
