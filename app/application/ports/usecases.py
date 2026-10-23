@@ -35,7 +35,7 @@ class PaymentDTO(BaseModel):
     order_id: UUID
     status: str
     amount: Decimal
-    error_message: str
+    error_message: str | None
 
 
 class PaymentStatus(StrEnum):
