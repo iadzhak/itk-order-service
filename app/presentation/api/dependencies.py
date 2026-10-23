@@ -10,6 +10,7 @@ from app.application.usecases.payment_callback import PaymentCallback
 from app.infrastructure.http.catalog_service import get_catalog_service
 from app.infrastructure.http.payment_service import get_payment_service
 from app.infrastructure.presistance.uow import get_unit_of_work
+from app.settings import conf
 
 UnitOfWorkDep = Annotated[UnitOfWorkPort, Depends(get_unit_of_work)]
 CatalogServiceDep = Annotated[CatalogServicePort, Depends(get_catalog_service)]
@@ -21,7 +22,7 @@ def get_create_order_use_case(
     catalog: CatalogServiceDep,
     payment: PaymentServiceDep,
 ):
-    return CreateOrderUseCase(uow, catalog, payment)
+    return CreateOrderUseCase(uow, catalog, payment, conf.payment_callback_url)
 
 
 def get_get_order_use_case(uow: UnitOfWorkDep):

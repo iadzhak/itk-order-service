@@ -16,6 +16,7 @@ class Settings(BaseSettings):
 
     payment_url: str = ''
     payment_key: str = ''
+    payment_callback_url: str = ''
 
     max_retries: int = 3
 

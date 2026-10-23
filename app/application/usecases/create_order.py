@@ -11,10 +11,12 @@ class CreateOrderUseCase:
         uow: UnitOfWorkPort,
         catalog: CatalogServicePort,
         payment: PaymentServicePort,
+        payment_callback_url: str,
     ) -> None:
         self._uow = uow
         self._catalog = catalog
         self._payment = payment
+        self._payment_callback_url = payment_callback_url
 
     async def __call__(self, order: CreateOrderDTO) -> Order:
 
@@ -61,7 +63,7 @@ class CreateOrderUseCase:
                 self._payment.PaymentDTO(
                     order_id=db_order.id,
                     amount=payment_amount,
-                    callback_url='',
+                    callback_url=self._payment_callback_url,
                     idempotency_key=order.idempotency_key,
                 )
             )

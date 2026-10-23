@@ -77,7 +77,9 @@ class TestCreateOrderUseCase:
                 created_at=datetime.now(),
             )
         )
-        use_case = CreateOrderUseCase(uow, catalog_service, InMemoryPaymentService())
+        use_case = CreateOrderUseCase(
+            uow, catalog_service, InMemoryPaymentService(), ''
+        )
         created = await use_case(new)
         assert isinstance(created, Order)
         assert created.user_id == new.user_id
@@ -103,7 +105,9 @@ class TestCreateOrderUseCase:
                 created_at=datetime.now(),
             )
         )
-        use_case = CreateOrderUseCase(uow, catalog_service, InMemoryPaymentService())
+        use_case = CreateOrderUseCase(
+            uow, catalog_service, InMemoryPaymentService(), ''
+        )
         found = await use_case(new)
         assert len(uow.idempotency) == 1
         assert len(uow.orders) == 1
@@ -129,7 +133,9 @@ class TestCreateOrderUseCase:
                 created_at=datetime.now(),
             )
         )
-        use_case = CreateOrderUseCase(uow, catalog_service, InMemoryPaymentService())
+        use_case = CreateOrderUseCase(
+            uow, catalog_service, InMemoryPaymentService(), ''
+        )
         await use_case(new)
         assert len(uow.idempotency) == 1
         assert len(uow.orders) == 1
@@ -154,7 +160,9 @@ class TestCreateOrderUseCase:
                 created_at=datetime.now(),
             )
         )
-        use_case = CreateOrderUseCase(uow, catalog_service, InMemoryPaymentService())
+        use_case = CreateOrderUseCase(
+            uow, catalog_service, InMemoryPaymentService(), ''
+        )
         with pytest.raises(ItemNotEnoughQuantity):
             await use_case(new)
         assert len(uow.orders) == 0
@@ -169,7 +177,9 @@ class TestCreateOrderUseCase:
         )
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service()
-        use_case = CreateOrderUseCase(uow, catalog_service, InMemoryPaymentService())
+        use_case = CreateOrderUseCase(
+            uow, catalog_service, InMemoryPaymentService(), ''
+        )
         with pytest.raises(ItemNotFound):
             await use_case(new)
         assert len(uow.orders) == 0
@@ -193,7 +203,7 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(False)
+            uow, catalog_service, InMemoryPaymentService(False), ''
         )
         with pytest.raises(PaymentServiceError):
             await use_case(new)
