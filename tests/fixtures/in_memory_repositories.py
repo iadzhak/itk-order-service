@@ -23,8 +23,16 @@ class InMemoryOrderRepository(OrderRepository):
         self._orders[db_order.id] = db_order
         return db_order
 
-    async def get_by_id(self, order_id: UUID) -> Order | None:
+    async def get_by_id(
+        self, order_id: UUID, status: OrderStatus | None = None
+    ) -> Order | None:
         return self._orders.get(order_id)
+
+    async def update(self, order: Order) -> Order:
+        if order.id not in self._orders:
+            raise KeyError(f'Не найден ордер с id {order.id}')
+        self._orders[order.id] = order
+        return order
 
 
 class InMemoryIdempotencyRepository(IdempotencyRepository):

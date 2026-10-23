@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.repositories import IdempotencyRepository, OrderRepository
-from app.domain.models import Idempotency, Order
+from app.domain.models import Idempotency, Order, OrderStatus
 from app.infrastructure.presistance.db import Idempotency as IdempotencyORM
 from app.infrastructure.presistance.db import Order as OrderORM
 
@@ -28,12 +28,29 @@ class SAOrderRepository(OrderRepository):
             raise RuntimeError('Ошибка создания ордера в базе')
         return self._construct(db_order)
 
-    async def get_by_id(self, order_id: UUID) -> Order | None:
+    async def get_by_id(
+        self, order_id: UUID, status: OrderStatus | None = None
+    ) -> Order | None:
         stmt = select(OrderORM).where(OrderORM.id == order_id)
+        if status:
+            stmt = stmt.where(OrderORM.status == status)
         result = await self._session.execute(stmt)
         db_order = result.scalars().first()
         if not db_order:
             return None
+        return self._construct(db_order)
+
+    async def update(self, order: Order) -> Order:
+        stmt = (
+            update(OrderORM)
+            .where(OrderORM.id == order.id)
+            .values(status=order.status)
+            .returning(OrderORM)
+        )
+        result = await self._session.execute(stmt)
+        db_order = result.scalars().first()
+        if not db_order:
+            raise RuntimeError(f'Не удалось выполнить обновление ордера {order.id}')
         return self._construct(db_order)
 
     @staticmethod

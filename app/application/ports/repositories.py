@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, PositiveInt
 
-from app.domain.models import Idempotency, Order
+from app.domain.models import Idempotency, Order, OrderStatus
 
 
 class OrderRepository(ABC):
@@ -17,7 +17,13 @@ class OrderRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, order_id: UUID) -> Order | None:
+    async def get_by_id(
+        self, order_id: UUID, status: OrderStatus | None = None
+    ) -> Order | None:
+        pass
+
+    @abstractmethod
+    async def update(self, order: Order) -> Order:
         pass
 
 
