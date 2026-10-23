@@ -17,3 +17,24 @@ class CatalogServicePort(ABC):
     @abstractmethod
     async def get_item(self, item_id: UUID) -> ItemDTO | None:
         pass
+
+
+class PaymentServicePort(ABC):
+    class PaymentDTO(BaseModel):
+        order_id: UUID
+        amount: Decimal
+        callback_url: str
+        idempotency_key: str
+
+    class ResponsePaymentDTO(BaseModel):
+        id: str
+        user_id: str
+        order_id: UUID
+        amount: Decimal
+        status: str
+        idempotency_key: str
+        created_at: datetime
+
+    @abstractmethod
+    async def create_payment(self, data: PaymentDTO) -> bool:
+        pass
