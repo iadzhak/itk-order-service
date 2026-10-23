@@ -1,4 +1,4 @@
-from app.application.ports.clients import CatalogServicePort
+from app.application.ports.clients import CatalogServicePort, PaymentServicePort
 from app.application.ports.uow import UnitOfWorkPort
 from app.application.ports.usecases import CreateOrderDTO
 from app.domain.exceptions import IdempotencyError, ItemNotEnoughQuantity, ItemNotFound
@@ -6,9 +6,15 @@ from app.domain.models import Order
 
 
 class CreateOrderUseCase:
-    def __init__(self, uow: UnitOfWorkPort, catalog: CatalogServicePort) -> None:
+    def __init__(
+        self,
+        uow: UnitOfWorkPort,
+        catalog: CatalogServicePort,
+        payment: PaymentServicePort,
+    ) -> None:
         self._uow = uow
         self._catalog = catalog
+        self._payment = payment
 
     async def __call__(self, order: CreateOrderDTO) -> Order:
 
@@ -48,5 +54,17 @@ class CreateOrderUseCase:
                     response=db_order.to_dict(),
                 )
             )
+
+            # create payment
+            payment_amount = catalog_item.price * order.quantity
+            await self._payment.create_payment(
+                self._payment.PaymentDTO(
+                    order_id=db_order.id,
+                    amount=payment_amount,
+                    callback_url='',
+                    idempotency_key=order.idempotency_key,
+                )
+            )
+
             await uow.commit()
         return db_order
