@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, NonNegativeInt
+from pydantic import BaseModel, NonNegativeInt, field_serializer
 
 
 class CatalogServicePort(ABC):
@@ -25,6 +25,14 @@ class PaymentServicePort(ABC):
         amount: Decimal
         callback_url: str
         idempotency_key: str
+
+        @field_serializer('amount', mode='wrap')
+        def serialize_amount(self, v: Decimal, handler) -> str:
+            return str(v)
+
+        @field_serializer('order_id', mode='wrap')
+        def serialize_order_id(self, v: UUID, handler) -> str:
+            return str(v)
 
     class ResponsePaymentDTO(BaseModel):
         id: str
