@@ -1,6 +1,7 @@
 from uuid import UUID
 
-from app.application.ports.clients import CatalogServicePort
+from app.application.ports.clients import CatalogServicePort, PaymentServicePort
+from app.domain.exceptions import PaymentServiceError
 
 
 class InMemoryCatalogService(CatalogServicePort):
@@ -9,3 +10,13 @@ class InMemoryCatalogService(CatalogServicePort):
 
     async def get_item(self, item_id: UUID) -> CatalogServicePort.ItemDTO | None:
         return self._items.get(item_id)
+
+
+class InMemoryPaymentService(PaymentServicePort):
+    def __init__(self, response: bool = True) -> None:
+        self._response = response
+
+    async def create_payment(self, data: PaymentServicePort.PaymentDTO) -> bool:
+        if not self._response:
+            raise PaymentServiceError()
+        return self._response
