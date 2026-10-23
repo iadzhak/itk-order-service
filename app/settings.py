@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     catalog_url: str = ''
     catalog_key: str = ''
 
+    payment_url: str = ''
+    payment_key: str = ''
+
+    max_retries: int = 3
+
     @property
     def db_url(self) -> str:
         return (
