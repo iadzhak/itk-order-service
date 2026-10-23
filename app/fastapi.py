@@ -1,7 +1,12 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from app.domain.exceptions import IdempotencyError, ItemError, OrderNotFound
+from app.domain.exceptions import (
+    ExternalServiceError,
+    IdempotencyError,
+    ItemError,
+    OrderNotFound,
+)
 from app.presentation.api import main_router
 
 
@@ -22,6 +27,13 @@ def register_middlewares(app: FastAPI) -> None:
     async def handle_409(request: Request, exc: IdempotencyError) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT, content={'details': str(exc)}
+        )
+
+    @app.exception_handler(ExternalServiceError)
+    async def handle_503(request: Request, exc: ExternalServiceError) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={'details': f'{exc.NAME} временно недоступен'},
         )
 
 

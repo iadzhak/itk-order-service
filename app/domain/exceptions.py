@@ -28,3 +28,15 @@ class IdempotencyError(Exception):
         super().__init__(
             f'Повторная отправка с другими данными для ключа {idempotency_key!r}'
         )
+
+
+class ExternalServiceError(Exception):
+    NAME = ''
+
+
+class CatalogServiceError(ExternalServiceError):
+    NAME = 'Каталог'
+
+
+class PaymentServiceError(ExternalServiceError):
+    NAME = 'Сервис платежей'
