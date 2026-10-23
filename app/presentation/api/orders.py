@@ -4,9 +4,13 @@ from uuid import UUID
 from fastapi import APIRouter, status
 from pydantic import BaseModel, ConfigDict
 
-from app.application.ports.usecases import CreateOrderDTO
+from app.application.ports.usecases import CreateOrderDTO, PaymentDTO
 from app.domain.models import OrderStatus
-from app.presentation.api.dependencies import CreateOrderUseCaseDep, GetOrderUseCaseDep
+from app.presentation.api.dependencies import (
+    CreateOrderUseCaseDep,
+    GetOrderUseCaseDep,
+    PaymentCallbackUseCaseDep,
+)
 
 router = APIRouter()
 
@@ -27,6 +31,10 @@ class OrderResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaymentRequest(PaymentDTO):
+    pass
+
+
 @router.post('', response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_order(order: CreateOrderRequest, use_case: CreateOrderUseCaseDep):
     return await use_case(CreateOrderDTO.model_validate(order))
@@ -35,3 +43,10 @@ async def create_order(order: CreateOrderRequest, use_case: CreateOrderUseCaseDe
 @router.get('/{order_id}', response_model=OrderResponse)
 async def get_order(order_id: UUID, use_case: GetOrderUseCaseDep):
     return await use_case(order_id)
+
+
+@router.post('/payment-callback', status_code=status.HTTP_200_OK)
+async def payment_callback(
+    payment: PaymentRequest, use_case: PaymentCallbackUseCaseDep
+):
+    await use_case(payment)

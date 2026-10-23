@@ -1,4 +1,6 @@
 import hashlib
+from decimal import Decimal
+from enum import StrEnum
 from typing import Protocol
 from uuid import UUID
 
@@ -26,3 +28,20 @@ class CreateOrderPort(Protocol):
 
 class GetOrderPort(Protocol):
     async def __call__(self, order_id: UUID) -> Order: ...
+
+
+class PaymentDTO(BaseModel):
+    payment_id: str
+    order_id: UUID
+    status: str
+    amount: Decimal
+    error_message: str
+
+
+class PaymentStatus(StrEnum):
+    SUCCEEDED = 'succeeded'
+    FAILED = 'failed'
+
+
+class PaymentCallbackPort(Protocol):
+    async def __call__(self, payment: PaymentDTO) -> Order: ...

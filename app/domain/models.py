@@ -50,6 +50,12 @@ class Order:
             'updated_at': self.updated_at.isoformat(),
         }
 
+    def set_paid(self) -> None:
+        self.status = OrderStatus.PAID
+
+    def set_cancelled(self) -> None:
+        self.status = OrderStatus.CANCELLED
+
 
 @dataclass
 class Idempotency:
