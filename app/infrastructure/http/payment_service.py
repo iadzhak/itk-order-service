@@ -24,8 +24,9 @@ class PaymentService(PaymentServicePort):
             headers=self._headers,
             transport=AsyncHTTPTransport(retries=self.max_retries),
         ) as client:
+            print(data.model_dump())
             response = await client.post(
-                self.CREATE_PAYMENT_URL, data=data.model_dump()
+                self.CREATE_PAYMENT_URL, json=data.model_dump()
             )
             if response.status_code == HTTPStatus.CREATED:
                 return True
