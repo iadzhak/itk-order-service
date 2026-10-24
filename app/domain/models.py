@@ -63,3 +63,21 @@ class Idempotency:
     payload_hash: str
     response: dict
     created_at: datetime
+
+
+class EventType(StrEnum):
+    ORDER_PAID = 'order.paid'
+
+
+class OutboxEventStatus(StrEnum):
+    PENDING = 'PENDING'
+    SENT = 'SENT'
+
+
+@dataclass
+class OutboxEvent:
+    id: int
+    event_type: EventType
+    payload: dict
+    status: OutboxEventStatus
+    cerated_at: datetime

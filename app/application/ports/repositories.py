@@ -3,7 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, PositiveInt
 
-from app.domain.models import Idempotency, Order, OrderStatus
+from app.domain.models import (
+    EventType,
+    Idempotency,
+    Order,
+    OrderStatus,
+    OutboxEvent,
+)
 
 
 class OrderRepository(ABC):
@@ -40,3 +46,13 @@ class IdempotencyRepository(ABC):
     async def get_by_idempotency_key(
         self, idempotency_key: str
     ) -> Idempotency | None: ...
+
+
+class OutboxRepository(ABC):
+    class CreateDTO(BaseModel):
+        event_type: EventType
+        payload: dict
+
+    @abstractmethod
+    async def create(self) -> OutboxEvent:
+        pass
