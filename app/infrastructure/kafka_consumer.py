@@ -62,7 +62,7 @@ class KafkaConsumer:
 def get_kafka_consumer():
     return KafkaConsumer(
         bootstrap_servers=conf.kafka_bootstrap_servers,
-        topic=conf.top,
+        topic=conf.topic_in,
         group_id=conf.group_id,
         uow=UnitOfWork(SessionLocal),
     )
