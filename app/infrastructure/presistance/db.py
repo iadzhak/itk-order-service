@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
-from app.domain.models import OrderStatus
+from app.domain.models import EventType, OrderStatus, OutboxEventStatus
 from app.settings import conf
 
 engine = create_async_engine(conf.db_url)
@@ -46,6 +46,20 @@ class Idempotency(Base):
     payload_hash: Mapped[str] = mapped_column(String, nullable=False)
     response: Mapped[dict] = mapped_column(JSONB, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(tz=UTC),
+    )
+
+
+class Outbox(Base):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_type: Mapped[EventType] = mapped_column(Enum(EventType), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    status: Mapped[OutboxEventStatus] = mapped_column(
+        Enum(OutboxEventStatus), nullable=False, default=OutboxEventStatus.PENDING
+    )
+    cerated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(tz=UTC),

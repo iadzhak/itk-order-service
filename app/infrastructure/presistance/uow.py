@@ -6,6 +6,7 @@ from app.infrastructure.presistance.db import SessionLocal
 from app.infrastructure.presistance.repositories import (
     SAIdempotencyRepository,
     SAOrderRepository,
+    SAOutboxRepository,
 )
 
 
@@ -30,6 +31,7 @@ class _UnitOfWorkImplementation:
         self._session = session
         self._orders = SAOrderRepository(session)
         self._idempotency = SAIdempotencyRepository(session)
+        self._outbox = SAOutboxRepository(session)
 
     @property
     def orders(self) -> SAOrderRepository:
@@ -38,6 +40,10 @@ class _UnitOfWorkImplementation:
     @property
     def idempotency(self) -> SAIdempotencyRepository:
         return self._idempotency
+
+    @property
+    def outbox(self) -> SAOutboxRepository:
+        return self._outbox
 
     async def commit(self):
         await self._session.commit()

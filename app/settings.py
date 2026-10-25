@@ -20,6 +20,9 @@ class Settings(BaseSettings):
 
     max_retries: int = 3
 
+    kafka_bootstrap_servers: str = ''
+    topic_out: str = 'student_system-order.events'
+
     @property
     def db_url(self) -> str:
         return (
