@@ -3,11 +3,14 @@ from uuid import UUID, uuid4
 
 from app.application.ports.repositories import (
     IdempotencyRepository,
+    InboxRepository,
     OrderRepository,
     OutboxRepository,
 )
 from app.domain.models import (
     Idempotency,
+    InboxEvent,
+    InboxEventStatus,
     Order,
     OrderStatus,
     OutboxEvent,
@@ -44,6 +47,12 @@ class InMemoryOrderRepository(OrderRepository):
         self._orders[order.id] = order
         return order
 
+    async def mark_as_shipped(self, order_id: UUID) -> None:
+        pass
+
+    async def mark_as_cancelled(self, order_id: UUID) -> None:
+        pass
+
 
 class InMemoryIdempotencyRepository(IdempotencyRepository):
     def __init__(self, idempotency: dict | None = None):
@@ -59,7 +68,7 @@ class InMemoryIdempotencyRepository(IdempotencyRepository):
         self._idempotency[db_idempotency.idempotency_key] = db_idempotency
         return db_idempotency
 
-    async def get_by_idempotency_key(self, idempotency_key: UUID) -> Idempotency | None:
+    async def get_by_idempotency_key(self, idempotency_key: str) -> Idempotency | None:
         return self._idempotency.get(idempotency_key)
 
 
@@ -91,3 +100,35 @@ class InMemoryOutboxRepository(OutboxRepository):
 
     async def mark_as_sent(self, event_id: int) -> None:
         self._events[event_id].status = OutboxEventStatus.SENT
+
+
+class InMemoryInboxRepository(InboxRepository):
+    def __init__(self, events: dict | None = None) -> None:
+        self._events = events if events is not None else {}
+        self._last_id = 1
+
+    async def create(self, event: InboxRepository.CreateDTO) -> InboxEvent:
+        while self._last_id in self._events:
+            self._last_id += 1
+        self._events[self._last_id] = InboxEvent(
+            id=self._last_id,
+            event_id=event.event_id,
+            event_type=event.event_type,
+            payload=event.payload,
+            status=InboxEventStatus.PENDING,
+            processed_at=None,
+            created_at=datetime.now(),
+        )
+        return self._events[self._last_id]
+
+    async def get_pending_events(self, limit: int = 10) -> list[InboxEvent]:
+        res = []
+        for event in self._events.values():
+            if event.status == InboxEventStatus.PENDING:
+                res.append(event)
+            if len(res) >= limit:
+                break
+        return res
+
+    async def mark_as_processed(self, event_id: int) -> None:
+        pass

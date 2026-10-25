@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     kafka_bootstrap_servers: str = ''
     topic_out: str = 'student_system-order.events'
+    topic_in: str = 'student_system-shipment.events'
+    group_id: str = 'order-service'
 
     @property
     def db_url(self) -> str:

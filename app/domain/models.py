@@ -76,6 +76,8 @@ class Idempotency:
 
 class EventType(StrEnum):
     ORDER_PAID = 'order.paid'
+    ORDER_SHIPPED = 'order.shipped'
+    ORDER_CANCELLED = 'order.cancelled'
 
 
 class OutboxEventStatus(StrEnum):
@@ -90,3 +92,19 @@ class OutboxEvent:
     payload: dict
     status: OutboxEventStatus
     cerated_at: datetime
+
+
+class InboxEventStatus(StrEnum):
+    PENDING = 'PENDING'
+    PROCESSED = 'PROCESSED'
+
+
+@dataclass
+class InboxEvent:
+    id: int
+    event_id: str
+    event_type: EventType
+    payload: dict
+    status: InboxEventStatus
+    processed_at: datetime | None
+    created_at: datetime

@@ -3,6 +3,7 @@ from typing import Protocol
 
 from app.application.ports.repositories import (
     IdempotencyRepository,
+    InboxRepository,
     OrderRepository,
     OutboxRepository,
 )
@@ -19,6 +20,9 @@ class UnitOfWorkImplementationPort(Protocol):
 
     @property
     def outbox(self) -> OutboxRepository: ...
+
+    @property
+    def inbox(self) -> InboxRepository: ...
 
 
 class UnitOfWorkPort(Protocol):

@@ -6,17 +6,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.repositories import (
     IdempotencyRepository,
+    InboxRepository,
     OrderRepository,
     OutboxRepository,
 )
 from app.domain.models import (
     Idempotency,
+    InboxEvent,
+    InboxEventStatus,
     Order,
     OrderStatus,
     OutboxEvent,
     OutboxEventStatus,
 )
 from app.infrastructure.presistance.db import Idempotency as IdempotencyORM
+from app.infrastructure.presistance.db import Inbox as InboxORM
 from app.infrastructure.presistance.db import Order as OrderORM
 from app.infrastructure.presistance.db import Outbox as OutboxORM
 
@@ -63,6 +67,22 @@ class SAOrderRepository(OrderRepository):
         if not db_order:
             raise RuntimeError(f'Не удалось выполнить обновление ордера {order.id}')
         return self._construct(db_order)
+
+    async def mark_as_shipped(self, order_id: UUID) -> None:
+        stmt = (
+            update(OrderORM)
+            .where(OrderORM.id == order_id)
+            .values(status=OrderStatus.SHIPPED)
+        )
+        await self._session.execute(stmt)
+
+    async def mark_as_cancelled(self, order_id: UUID) -> None:
+        stmt = (
+            update(OrderORM)
+            .where(OrderORM.id == order_id)
+            .values(status=OrderStatus.CANCELLED)
+        )
+        await self._session.execute(stmt)
 
     @staticmethod
     def _construct(db_order: OrderORM) -> Order:
@@ -161,3 +181,52 @@ class SAOutboxRepository(OutboxRepository):
             .values(status=OutboxEventStatus.SENT)
         )
         await self._session.execute(stmt)
+
+
+class SAInboxRepository(InboxRepository):
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @staticmethod
+    def _construct(event: InboxORM) -> InboxEvent:
+        return InboxEvent(
+            id=event.id,
+            event_id=event.event_id,
+            event_type=event.event_type,
+            payload=event.payload,
+            status=event.status,
+            processed_at=event.processed_at,
+            created_at=event.created_at,
+        )
+
+    async def create(self, event: InboxRepository.CreateDTO) -> InboxEvent:
+        stmt = (
+            insert(InboxORM)
+            .values(
+                event_id=event.event_id,
+                event_type=event.event_type,
+                payload=event.payload,
+                status=InboxEventStatus.PENDING,
+                processed_at=None,
+            )
+            .on_conflict_do_update(
+                index_elements=['event_id'], set_={'event_id': event.event_id}
+            )
+            .returning(InboxORM)
+        )
+        result = await self._session.execute(stmt)
+        db_event = result.scalars().first()
+        if not db_event:
+            raise RuntimeError(f'Ошибка создания inbox event {event}')
+        return self._construct(db_event)
+
+    async def get_pending_events(self, limit: int = 10) -> list[InboxEvent]:
+        stmt = (
+            select(InboxORM)
+            .where(InboxORM.status == InboxEventStatus.PENDING)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        result = await self._session.execute(stmt)
+        db_events = result.scalars().all()
+        return [self._construct(db_event) for db_event in db_events]
