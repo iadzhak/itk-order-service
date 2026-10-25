@@ -230,3 +230,11 @@ class SAInboxRepository(InboxRepository):
         result = await self._session.execute(stmt)
         db_events = result.scalars().all()
         return [self._construct(db_event) for db_event in db_events]
+
+    async def mark_as_processed(self, event_id: int) -> None:
+        stmt = (
+            update(InboxORM)
+            .where(InboxORM.id == event_id)
+            .values(status=InboxEventStatus.PROCESSED)
+        )
+        await self._session.execute(stmt)

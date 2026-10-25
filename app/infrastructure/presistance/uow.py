@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.infrastructure.presistance.db import SessionLocal
 from app.infrastructure.presistance.repositories import (
     SAIdempotencyRepository,
+    SAInboxRepository,
     SAOrderRepository,
     SAOutboxRepository,
 )
@@ -32,6 +33,7 @@ class _UnitOfWorkImplementation:
         self._orders = SAOrderRepository(session)
         self._idempotency = SAIdempotencyRepository(session)
         self._outbox = SAOutboxRepository(session)
+        self._inbox = SAInboxRepository(session)
 
     @property
     def orders(self) -> SAOrderRepository:
@@ -44,6 +46,10 @@ class _UnitOfWorkImplementation:
     @property
     def outbox(self) -> SAOutboxRepository:
         return self._outbox
+
+    @property
+    def inbox(self) -> SAInboxRepository:
+        return self._inbox
 
     async def commit(self):
         await self._session.commit()
