@@ -1,8 +1,10 @@
 from datetime import datetime
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
 
+from app.application.ports.clients import NotificationServicePort
 from app.application.usecases.create_order import CreateOrderDTO, CreateOrderUseCase
 from app.application.usecases.get_order import GetOrderUseCase
 from app.domain.exceptions import (
@@ -78,7 +80,11 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         created = await use_case(new)
         assert isinstance(created, Order)
@@ -106,7 +112,11 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         found = await use_case(new)
         assert len(uow.idempotency) == 1
@@ -134,7 +144,11 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         await use_case(new)
         assert len(uow.idempotency) == 1
@@ -161,7 +175,11 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         with pytest.raises(ItemNotEnoughQuantity):
             await use_case(new)
@@ -178,7 +196,11 @@ class TestCreateOrderUseCase:
         uow = InMemoryUnitOfWork()
         catalog_service = self.make_catalog_service()
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         with pytest.raises(ItemNotFound):
             await use_case(new)
@@ -203,7 +225,11 @@ class TestCreateOrderUseCase:
             )
         )
         use_case = CreateOrderUseCase(
-            uow, catalog_service, InMemoryPaymentService(False), ''
+            uow,
+            catalog_service,
+            InMemoryPaymentService(False),
+            '',
+            AsyncMock(spec=NotificationServicePort),
         )
         with pytest.raises(PaymentServiceError):
             await use_case(new)

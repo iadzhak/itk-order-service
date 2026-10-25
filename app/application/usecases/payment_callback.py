@@ -1,3 +1,4 @@
+from app.application.ports.clients import NotificationServicePort
 from app.application.ports.uow import UnitOfWorkPort
 from app.application.ports.usecases import PaymentDTO, PaymentStatus
 from app.domain.models import EventType, OrderStatus
@@ -7,10 +8,12 @@ logger = get_logger(__name__)
 
 
 class PaymentCallback:
-    def __init__(self, uow: UnitOfWorkPort):
+    def __init__(self, uow: UnitOfWorkPort, notify: NotificationServicePort):
         self._uow = uow
+        self._notify = notify
 
     async def __call__(self, payment: PaymentDTO) -> None:
+        paid = False
         async with self._uow() as uow:
             order = await uow.orders.get_by_id(payment.order_id, OrderStatus.NEW)
             if not order:
@@ -25,7 +28,7 @@ class PaymentCallback:
                         event_type=EventType.ORDER_PAID, payload=payload
                     )
                 )
-
+                paid = True
             elif payment.status == PaymentStatus.FAILED:
                 order.set_cancelled()
             else:
@@ -37,3 +40,5 @@ class PaymentCallback:
             await uow.orders.update(order)
 
             await uow.commit()
+        if paid:
+            await self._notify.notify_paid(payment.order_id)

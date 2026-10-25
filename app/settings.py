@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     payment_key: str = ''
     payment_callback_url: str = ''
 
+    notification_url: str = ''
+    notification_key: str = ''
+
     max_retries: int = 3
 
     kafka_bootstrap_servers: str = ''
