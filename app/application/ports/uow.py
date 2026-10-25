@@ -1,7 +1,11 @@
 from contextlib import AbstractAsyncContextManager
 from typing import Protocol
 
-from app.application.ports.repositories import IdempotencyRepository, OrderRepository
+from app.application.ports.repositories import (
+    IdempotencyRepository,
+    OrderRepository,
+    OutboxRepository,
+)
 
 
 class UnitOfWorkImplementationPort(Protocol):
@@ -12,6 +16,9 @@ class UnitOfWorkImplementationPort(Protocol):
 
     @property
     def idempotency(self) -> IdempotencyRepository: ...
+
+    @property
+    def outbox(self) -> OutboxRepository: ...
 
 
 class UnitOfWorkPort(Protocol):

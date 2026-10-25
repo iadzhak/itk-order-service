@@ -1,6 +1,6 @@
 from app.application.ports.uow import UnitOfWorkPort
 from app.application.ports.usecases import PaymentDTO, PaymentStatus
-from app.domain.models import OrderStatus
+from app.domain.models import EventType, OrderStatus
 from app.infrastructure.logging import get_logger
 
 logger = get_logger(__name__)
@@ -17,7 +17,15 @@ class PaymentCallback:
                 return
 
             if payment.status == PaymentStatus.SUCCEEDED:
-                order.set_paid()
+                payload = order.set_paid()
+
+                # order.paid event
+                await uow.outbox.create(
+                    uow.outbox.CreateDTO(
+                        event_type=EventType.ORDER_PAID, payload=payload
+                    )
+                )
+
             elif payment.status == PaymentStatus.FAILED:
                 order.set_cancelled()
             else:

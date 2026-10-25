@@ -50,8 +50,17 @@ class Order:
             'updated_at': self.updated_at.isoformat(),
         }
 
-    def set_paid(self) -> None:
+    def set_paid(self) -> dict:
         self.status = OrderStatus.PAID
+        return {
+            'order_id': str(self.id),
+            'item_id': str(self.item_id),
+            'quantity': self.quantity,
+            'idempotency_key': self._idempotency_key(),
+        }
+
+    def _idempotency_key(self) -> str:
+        return f'{self.id!s}:{self.item_id}:{self.quantity}'
 
     def set_cancelled(self) -> None:
         self.status = OrderStatus.CANCELLED
