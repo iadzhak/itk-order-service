@@ -50,8 +50,7 @@ class Order:
             'updated_at': self.updated_at.isoformat(),
         }
 
-    def set_paid(self) -> dict:
-        self.status = OrderStatus.PAID
+    def make_payment(self) -> dict:
         return {
             'order_id': str(self.id),
             'item_id': str(self.item_id),
@@ -64,6 +63,29 @@ class Order:
 
     def set_cancelled(self) -> None:
         self.status = OrderStatus.CANCELLED
+
+    @staticmethod
+    def make_notification(
+        order_id: UUID, status: OrderStatus, reason: str | None = None
+    ) -> dict:
+        match status:
+            case OrderStatus.NEW:
+                msg = 'Ваш заказ создан и ожидает оплаты'
+            case OrderStatus.PAID:
+                msg = 'Ваш заказ успешно оплачен и готов к отправке'
+            case OrderStatus.SHIPPED:
+                msg = 'Ваш заказ отправлен в доставку'
+            case OrderStatus.CANCELLED:
+                if reason is None:
+                    raise RuntimeError('Нужно указать причину отмены')
+                msg = f'Ваш заказ отменен. Причина: {reason}'
+            case _:
+                raise ValueError(f'{status} - неизвестный статус')
+        return {
+            'message': f'{status}: {msg}',
+            'reference_id': str(order_id),
+            'idempotency_key': f'{order_id!s}:{status}',
+        }
 
 
 @dataclass
@@ -78,6 +100,7 @@ class EventType(StrEnum):
     ORDER_PAID = 'order.paid'
     ORDER_SHIPPED = 'order.shipped'
     ORDER_CANCELLED = 'order.cancelled'
+    NOTIFICATION = 'notification'
 
 
 class OutboxEventStatus(StrEnum):

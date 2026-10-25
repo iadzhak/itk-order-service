@@ -3,7 +3,6 @@ import asyncio
 from app.application.usecases.order_cancelled import OrderCancelledUseCase
 from app.application.usecases.order_shipped import OrderShippedUseCase
 from app.application.usecases.process_inbox_events import ProcessInboxEvents
-from app.infrastructure.http.notification_service import get_notification_service
 from app.infrastructure.presistance.db import SessionLocal
 from app.infrastructure.presistance.uow import UnitOfWork
 
@@ -22,11 +21,7 @@ def get_inbox_worker() -> InboxWorker:
     return InboxWorker(
         ProcessInboxEvents(
             uow=UnitOfWork(SessionLocal),
-            order_shipped=OrderShippedUseCase(
-                UnitOfWork(SessionLocal), get_notification_service()
-            ),
-            order_cancelled=OrderCancelledUseCase(
-                UnitOfWork(SessionLocal), get_notification_service()
-            ),
+            order_shipped=OrderShippedUseCase(UnitOfWork(SessionLocal)),
+            order_cancelled=OrderCancelledUseCase(UnitOfWork(SessionLocal)),
         )
     )

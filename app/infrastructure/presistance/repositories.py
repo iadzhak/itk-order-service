@@ -68,6 +68,14 @@ class SAOrderRepository(OrderRepository):
             raise RuntimeError(f'Не удалось выполнить обновление ордера {order.id}')
         return self._construct(db_order)
 
+    async def mark_as_paid(self, order_id: UUID) -> None:
+        stmt = (
+            update(OrderORM)
+            .where(OrderORM.id == order_id)
+            .values(status=OrderStatus.PAID)
+        )
+        await self._session.execute(stmt)
+
     async def mark_as_shipped(self, order_id: UUID) -> None:
         stmt = (
             update(OrderORM)

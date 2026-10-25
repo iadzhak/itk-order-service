@@ -1,6 +1,7 @@
 import asyncio
 
 from app.application.usecases.process_outbox_events import ProcessOutboxEvents
+from app.infrastructure.http.notification_service import get_notification_service
 from app.infrastructure.kafka_producer import KafkaProducer
 from app.infrastructure.presistance.db import SessionLocal
 from app.infrastructure.presistance.uow import UnitOfWork
@@ -24,5 +25,6 @@ def create_outbox_worker() -> OutboxWorker:
             kafka_producer=KafkaProducer(
                 bootstrap_servers=conf.kafka_bootstrap_servers, topic=conf.topic_out
             ),
+            notification_service=get_notification_service(),
         )
     )

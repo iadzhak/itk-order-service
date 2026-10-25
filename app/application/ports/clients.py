@@ -54,42 +54,6 @@ class NotificationServicePort(ABC):
         reference_id: str
         idempotency_key: str
 
-    async def notify_new(self, order_id: UUID) -> None:
-        await self.notify(
-            self.NotificationDTO(
-                message='NEW: Ваш заказ создан и ожидает оплаты',
-                reference_id=str(order_id),
-                idempotency_key=f'{order_id!s}:NEW',
-            )
-        )
-
-    async def notify_paid(self, order_id: UUID) -> None:
-        await self.notify(
-            self.NotificationDTO(
-                message='PAID: Ваш заказ успешно оплачен и готов к отправке',
-                reference_id=str(order_id),
-                idempotency_key=f'{order_id!s}:PAID',
-            )
-        )
-
-    async def notify_shipped(self, order_id: UUID) -> None:
-        await self.notify(
-            self.NotificationDTO(
-                message='SHIPPED: Ваш заказ отправлен в доставку',
-                reference_id=str(order_id),
-                idempotency_key=f'{order_id!s}:SHIPPED',
-            )
-        )
-
-    async def notify_cancelled(self, order_id: UUID, reason: str) -> None:
-        await self.notify(
-            self.NotificationDTO(
-                message=f'CANCELLED: Ваш заказ отменен. Причина: {reason}',
-                reference_id=str(order_id),
-                idempotency_key=f'{order_id!s}:CANCELLED',
-            )
-        )
-
     @abstractmethod
     async def notify(self, notification: NotificationDTO) -> None:
         pass

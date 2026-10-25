@@ -34,6 +34,10 @@ class OrderRepository(ABC):
         pass
 
     @abstractmethod
+    async def mark_as_paid(self, order_id: UUID) -> None:
+        pass
+
+    @abstractmethod
     async def mark_as_shipped(self, order_id: UUID) -> None:
         pass
 

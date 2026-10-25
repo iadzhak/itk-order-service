@@ -48,10 +48,13 @@ class InMemoryOrderRepository(OrderRepository):
         return order
 
     async def mark_as_shipped(self, order_id: UUID) -> None:
-        pass
+        self._orders[order_id].status = OrderStatus.SHIPPED
 
     async def mark_as_cancelled(self, order_id: UUID) -> None:
-        pass
+        self._orders[order_id].status = OrderStatus.CANCELLED
+
+    async def mark_as_paid(self, order_id: UUID) -> None:
+        self._orders[order_id].status = OrderStatus.PAID
 
 
 class InMemoryIdempotencyRepository(IdempotencyRepository):

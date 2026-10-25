@@ -1,12 +1,11 @@
 from app.application.ports.clients import (
     CatalogServicePort,
-    NotificationServicePort,
     PaymentServicePort,
 )
 from app.application.ports.uow import UnitOfWorkPort
 from app.application.ports.usecases import CreateOrderDTO
 from app.domain.exceptions import IdempotencyError, ItemNotEnoughQuantity, ItemNotFound
-from app.domain.models import Order
+from app.domain.models import EventType, Order, OrderStatus
 
 
 class CreateOrderUseCase:
@@ -16,13 +15,11 @@ class CreateOrderUseCase:
         catalog: CatalogServicePort,
         payment: PaymentServicePort,
         payment_callback_url: str,
-        notify: NotificationServicePort,
     ) -> None:
         self._uow = uow
         self._catalog = catalog
         self._payment = payment
         self._payment_callback_url = payment_callback_url
-        self._notify = notify
 
     async def __call__(self, order: CreateOrderDTO) -> Order:
 
@@ -74,6 +71,13 @@ class CreateOrderUseCase:
                 )
             )
 
+            # create notification
+            await uow.outbox.create(
+                uow.outbox.CreateDTO(
+                    event_type=EventType.NOTIFICATION,
+                    payload=db_order.make_notification(db_order.id, OrderStatus.NEW),
+                )
+            )
+
             await uow.commit()
-        await self._notify.notify_new(db_order.id)
         return db_order
