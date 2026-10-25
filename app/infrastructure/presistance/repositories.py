@@ -4,10 +4,21 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.ports.repositories import IdempotencyRepository, OrderRepository
-from app.domain.models import Idempotency, Order, OrderStatus
+from app.application.ports.repositories import (
+    IdempotencyRepository,
+    OrderRepository,
+    OutboxRepository,
+)
+from app.domain.models import (
+    Idempotency,
+    Order,
+    OrderStatus,
+    OutboxEvent,
+    OutboxEventStatus,
+)
 from app.infrastructure.presistance.db import Idempotency as IdempotencyORM
 from app.infrastructure.presistance.db import Order as OrderORM
+from app.infrastructure.presistance.db import Outbox as OutboxORM
 
 
 class SAOrderRepository(OrderRepository):
@@ -104,3 +115,49 @@ class SAIdempotencyRepository(IdempotencyRepository):
         if not db_idempotency:
             return None
         return self._construct(db_idempotency)
+
+
+class SAOutboxRepository(OutboxRepository):
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @staticmethod
+    def _construct(outbox: OutboxORM) -> OutboxEvent:
+        return OutboxEvent(
+            id=outbox.id,
+            event_type=outbox.event_type,
+            payload=outbox.payload,
+            status=outbox.status,
+            cerated_at=outbox.cerated_at,
+        )
+
+    async def create(self, event: OutboxRepository.CreateDTO) -> OutboxEvent:
+        stmt = (
+            insert(OutboxORM)
+            .values(event_type=event.event_type, payload=event.payload)
+            .returning(OutboxORM)
+        )
+        result = await self._session.execute(stmt)
+        db_event = result.scalars().first()
+        if not db_event:
+            raise RuntimeError('Ошибка создания outbox event')
+        return self._construct(db_event)
+
+    async def get_pending_for_update(self, limit: int = 10) -> list[OutboxEvent]:
+        stmt = (
+            select(OutboxORM)
+            .where(OutboxORM.status == OutboxEventStatus.PENDING)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+        result = await self._session.execute(stmt)
+        db_events = result.scalars().all()
+        return [self._construct(db_event) for db_event in db_events]
+
+    async def mark_as_sent(self, event_id: int) -> None:
+        stmt = (
+            update(OutboxORM)
+            .where(OutboxORM.id == event_id)
+            .values(status=OutboxEventStatus.SENT)
+        )
+        await self._session.execute(stmt)

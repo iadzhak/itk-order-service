@@ -54,5 +54,13 @@ class OutboxRepository(ABC):
         payload: dict
 
     @abstractmethod
-    async def create(self) -> OutboxEvent:
+    async def create(self, event: CreateDTO) -> OutboxEvent:
+        pass
+
+    @abstractmethod
+    async def get_pending_for_update(self, limit: int = 10) -> list[OutboxEvent]:
+        pass
+
+    @abstractmethod
+    async def mark_as_sent(self, event_id: int) -> None:
         pass
