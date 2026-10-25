@@ -3,6 +3,7 @@ from http import HTTPStatus
 from httpx import AsyncClient, AsyncHTTPTransport
 
 from app.application.ports.clients import NotificationServicePort
+from app.domain.exceptions import NotificationError
 from app.infrastructure.logging import get_logger
 from app.settings import conf
 
@@ -34,7 +35,7 @@ class NotificationService(NotificationServicePort):
                 self.CREATE_NOTIFICATION_URL, json=notification.model_dump()
             )
             if response.status_code != HTTPStatus.CREATED:
-                logger.error(
+                raise NotificationError(
                     f'Ошибка отправки уведомления. Статус: {response.status_code} Ответ: {response.json()}'
                 )
 

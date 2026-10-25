@@ -40,3 +40,7 @@ class CatalogServiceError(ExternalServiceError):
 
 class PaymentServiceError(ExternalServiceError):
     NAME = 'Сервис платежей'
+
+
+class NotificationError(Exception):
+    pass
