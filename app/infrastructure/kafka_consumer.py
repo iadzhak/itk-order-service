@@ -44,10 +44,9 @@ class KafkaConsumer:
                     async with self._uow() as uow:
                         await uow.inbox.create(
                             uow.inbox.CreateDTO(
-                                event_id=event.get('id')
-                                or f'{message.topic}:{message.partition}:{message.offset}',
+                                event_id=f'{message.topic}:{message.partition}:{message.offset}',
                                 event_type=event['event_type'],
-                                payload=event['payload'],
+                                payload=event,
                             )
                         )
                         await uow.commit()
